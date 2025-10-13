@@ -34,7 +34,7 @@ namespace WarehouseManagement.API.Controllers
             return Ok(report);
         }
 
-        [HttpGet("orders")]
+        [HttpGet("order-summary")]
         [Authorize(Roles = "Administrator,SalesManager,WarehouseManager")]
         public async Task<IActionResult> GetOrderReport()
         {

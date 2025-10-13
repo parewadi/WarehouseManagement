@@ -2,6 +2,11 @@
 {
     public class WarehouseDto
     {
+        public int WarehouseId { get; set; }
+        public string WarehouseName { get; set; } = null!;
+        public string Code { get; set; } = null!;
+        public string Location { get; set; } = null!;
+        public string Pincode { get; set; } = null!;
     }
 
     public class StockRequestDto

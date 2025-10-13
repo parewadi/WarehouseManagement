@@ -1,4 +1,5 @@
-﻿using WarehouseManagement.API.Data;
+﻿using Microsoft.EntityFrameworkCore.Storage;
+using WarehouseManagement.API.Data;
 using WarehouseManagement.API.Models.Domain;
 using WarehouseManagement.API.Models.Domain.Users;
 using WarehouseManagement.API.Models.Repository;
@@ -18,6 +19,7 @@ namespace WarehouseManagement.API.Models.UnitOfWork
 
         public IGenericRepository<Role> Roles { get; }
         public IGenericRepository<Inventory> Inventories { get; }
+        public IGenericRepository<UserRole> UserRoles { get; }
 
         public UnitOfWork(AppDbContext context)
         {
@@ -30,10 +32,16 @@ namespace WarehouseManagement.API.Models.UnitOfWork
             Inventories = new GenericRepository<Inventory>(_context);
             Users = new GenericRepository<User>(_context);
             Roles = new GenericRepository<Role>(_context);
+            UserRoles = new GenericRepository<UserRole>(_context);
         }
 
         public async Task<int> SaveAsync() => await _context.SaveChangesAsync();
 
         public void Dispose() => _context.Dispose();
+
+        public async Task<IDbContextTransaction> BeginTransactionAsync()
+        {
+            return await _context.Database.BeginTransactionAsync();
+        }
     }
 }

@@ -19,7 +19,7 @@ namespace WarehouseManagement.API.Controllers
             _orderService = orderService;
         }
 
-        [HttpGet]
+        [HttpGet("Orders")]
         public async Task<ActionResult<IEnumerable<OrderDto>>> GetAll()
         => Ok(await _orderService.GetAllOrdersAsync());
 

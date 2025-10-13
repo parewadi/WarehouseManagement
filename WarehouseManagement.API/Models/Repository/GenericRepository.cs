@@ -16,6 +16,7 @@ namespace WarehouseManagement.API.Models.Repository
         }
 
         public async Task<IEnumerable<T>> GetAllAsync() => await _dbSet.ToListAsync();
+        public async Task<IEnumerable<T>> GetAllAsync(Func<object, object> include) => await _dbSet.ToListAsync();
 
         public async Task<T?> GetByIdAsync(int id) => await _dbSet.FindAsync(id);
 
@@ -36,5 +37,21 @@ namespace WarehouseManagement.API.Models.Repository
         {
             return _context.Set<T>();
         }
+
+        public async Task<IEnumerable<T>> GetAllAsync(string? includeProperties = null)
+        {
+            IQueryable<T> query = _dbSet;
+
+            if (includeProperties != null)
+            {
+                foreach (var includeProp in includeProperties.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                {
+                    query = query.Include(includeProp);
+                }
+            }
+
+            return await query.ToListAsync();
+        }
+
     }
 }

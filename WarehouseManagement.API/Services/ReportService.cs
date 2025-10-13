@@ -55,15 +55,14 @@ namespace WarehouseManagement.API.Services
             var result = await query.Select(o => new OrderReportDto
             {
                 OrderId = o.OrderId,
+                OrderNumber = o.OrderNumber,
                 CustomerName = o.CustomerName,
+                AssignedWarehouseName = o.AssignedWarehouse.WarehouseName,
+                SalesPersonName = o.SalesPerson.UserName,
+
                 Status = o.Status.ToString(),
                 CreatedAt = o.CreatedAt,
-                Items = o.Items.Select(oi => new OrderItemReportDto
-                {
-                    ProductId = oi.ProductId,
-                    ProductName = oi.Product.ProductName,
-                    Quantity = oi.QuantityRequested
-                }).ToList()
+               
             }).ToListAsync();
 
             return result;

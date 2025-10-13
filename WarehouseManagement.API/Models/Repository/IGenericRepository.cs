@@ -6,6 +6,7 @@ namespace WarehouseManagement.API.Models.Repository
     {
         IQueryable<T> GetQueryable();
         Task<IEnumerable<T>> GetAllAsync();
+        Task<IEnumerable<T>> GetAllAsync(string? includeProperties = null);
         Task<T?> GetByIdAsync(int id);
         Task AddAsync(T entity);
         void Update(T entity);

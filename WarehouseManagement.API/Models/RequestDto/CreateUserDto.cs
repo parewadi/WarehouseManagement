@@ -6,6 +6,6 @@
         public string Password { get; set; } = null!;  // later: hash this
         public string EmailId { get; set; } = null!;
         public bool IsActive { get; set; } = true;
-        public List<int> UserRoleID { get; set; } = new(); // Admin assigns roles
+        public List<string> Roles { get; set; } = new(); // Admin assigns roles
     }
 }
