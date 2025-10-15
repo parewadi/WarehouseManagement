@@ -1,19 +1,38 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using WarehouseManagement.API.Models.RequestDto;
+using WarehouseManagement.API.Models.UnitOfWork;
 using WarehouseManagement.API.Services;
 
 namespace WarehouseManagement.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class WarehouseController : ControllerBase
     {
         private readonly IWarehouseService _warehouseService;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public WarehouseController(IWarehouseService warehouseService)
+
+        public WarehouseController(IWarehouseService warehouseService,IUnitOfWork unitOfWork)
         {
             _warehouseService = warehouseService;
+            _unitOfWork = unitOfWork;
+        }
+
+        [HttpGet("GetAllWarehouse")]
+        public async Task<IActionResult> GetAllWarehouse()
+        {
+            var warehouse = await _unitOfWork.Warehouses.GetAllAsync();
+
+            if (warehouse == null)
+            {
+                return NotFound();
+            }
+            else
+                return Ok(warehouse);
         }
 
         // GET api/warehouse/check-stock?warehouseId=..&productId=..&qty=..

@@ -1,4 +1,5 @@
-﻿using WarehouseManagement.API.Models.RequestDto;
+﻿using WarehouseManagement.API.Models.Domain;
+using WarehouseManagement.API.Models.RequestDto;
 using WarehouseManagement.API.Models.ResponseDto;
 
 namespace WarehouseManagement.API.Services
@@ -10,5 +11,7 @@ namespace WarehouseManagement.API.Services
         Task<string> FulfillOrderAsync(FulfillOrderDto dto);
         Task<string> CancelOrderAsync(CancelOrderDto dto);
         Task<string> TransferStockAsync(TransferRequestDto dto);
+
+        Task<Order?> GetOrderWithDetailsAsync(int id);
     }
 }

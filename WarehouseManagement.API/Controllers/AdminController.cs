@@ -25,6 +25,7 @@ namespace WarehouseManagement.API.Controllers
         }
 
         [HttpGet("GetAllWarehouse")]
+        [Authorize(Roles = "Administrator,SalesManager")]
         public async Task<IActionResult> GetAllWarehouse()
         {
          var warehouse =   await _unitOfWork.Warehouses. GetAllAsync();

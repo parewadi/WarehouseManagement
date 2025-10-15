@@ -156,6 +156,15 @@ namespace WarehouseManagement.API.Services
 
             return "Transfer completed.";
         }
+
+        public async Task<Order?> GetOrderWithDetailsAsync(int id)
+        {
+            return await _unitOfWork.Orders.GetAsync(
+                o => o.OrderId == id,
+                includeProperties: "Items.Product,AssignedWarehouse,SalesPerson"
+            );
+        }
+
     }
 
 }

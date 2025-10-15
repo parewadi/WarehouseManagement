@@ -16,6 +16,7 @@ namespace WarehouseManagement.API.Models.Domain
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public string Status { get; set; }
 
+        public string? Notes { get; set; }
         public int AssignedWarehouseId {  get; set; }
         public Warehouse AssignedWarehouse { get; set; }
 

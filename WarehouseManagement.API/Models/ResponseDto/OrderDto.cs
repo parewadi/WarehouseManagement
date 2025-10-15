@@ -7,6 +7,8 @@
         public string Status { get; set; } = null!;
         public DateTime CreatedAt { get; set; }
         public int AssignedWarehouseId { get; set; }
+
+        public string? Notes { get; set; }
         public List<OrderItemDto> Items { get; set; } = new();
     }
 
@@ -29,5 +31,20 @@
         public int Quantity { get; set; }
         public int FromWarehouseId { get; set; }
         public int ToWarehouseId { get; set; }
+    }
+
+    public class UpdateOrderDto
+    {
+        public int AssignedWarehouseId { get; set; }
+        public string Status { get; set; } = string.Empty;
+        public string? Notes { get; set; }
+
+        public List<OrderItemUpdateDto> Items { get; set; } = new();
+    }
+
+    public class OrderItemUpdateDto
+    {
+        public int ProductId { get; set; }
+        public int Quantity { get; set; }
     }
 }
