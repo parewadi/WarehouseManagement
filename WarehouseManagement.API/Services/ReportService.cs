@@ -59,7 +59,6 @@ namespace WarehouseManagement.API.Services
                 CustomerName = o.CustomerName,
                 AssignedWarehouseName = o.AssignedWarehouse.WarehouseName,
                 SalesPersonName = o.SalesPerson.UserName,
-
                 Status = o.Status.ToString(),
                 CreatedAt = o.CreatedAt,
                
@@ -67,5 +66,14 @@ namespace WarehouseManagement.API.Services
 
             return result;
         }
+
+         
+
+
+
+
+
+
+
     }
 }

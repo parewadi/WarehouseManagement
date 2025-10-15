@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WarehouseManagement.API.Migrations;
 using WarehouseManagement.API.Models.Domain;
 using WarehouseManagement.API.Models.RequestDto;
 using WarehouseManagement.API.Models.ResponseDto;
@@ -47,6 +48,7 @@ namespace WarehouseManagement.API.Services
                 SalesPersonId = dto.SalesPersonId,
                 CustomerName = dto.CustomerName,
                 Status = "Pending",
+                Notes = dto.Notes,
                 Items = dto.Items.Select(i => new OrderItem
                 {
                     ProductId = i.ProductId,
@@ -65,6 +67,7 @@ namespace WarehouseManagement.API.Services
                 Status = order.Status,
                 CreatedAt = order.CreatedAt,
                 AssignedWarehouseId = order.AssignedWarehouseId,
+                Notes = order.Notes,
                 Items = order.Items.Select(i => new OrderItemDto
                 {
                     ProductId = i.ProductId,

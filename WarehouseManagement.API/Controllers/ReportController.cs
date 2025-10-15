@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using WarehouseManagement.API.Models.UnitOfWork;
 using WarehouseManagement.API.Services;
 
 namespace WarehouseManagement.API.Controllers
@@ -11,11 +12,13 @@ namespace WarehouseManagement.API.Controllers
     {
         private readonly IReportService _reportService;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public ReportController(IReportService reportService, IHttpContextAccessor httpContextAccessor)
+        public ReportController(IReportService reportService, IHttpContextAccessor httpContextAccessor,IUnitOfWork unitOfWork)
         {
             _reportService = reportService;
             _httpContextAccessor = httpContextAccessor;
+            _unitOfWork = unitOfWork;
         }
 
         [HttpGet("inventory")]
@@ -41,7 +44,7 @@ namespace WarehouseManagement.API.Controllers
             int? salesPersonId = null;
             int? warehouseId = null;
 
-            if (User.IsInRole("SalesPerson"))
+            if (User.IsInRole("SalesManager"))
                 salesPersonId = int.Parse(_httpContextAccessor.HttpContext.User.FindFirst("UserId").Value);
 
             if (User.IsInRole("WarehouseManager"))
@@ -50,5 +53,38 @@ namespace WarehouseManagement.API.Controllers
             var report = await _reportService.GetOrderReportAsync(salesPersonId, warehouseId);
             return Ok(report);
         }
+
+        [HttpGet("salesmanager/{salesPersonId}")]
+        public async Task<IActionResult> GetOrdersBySalesPerson(int salesPersonId)
+        {
+            var orders = await _unitOfWork.Orders
+                .GetAllAsync(
+                    filter: o => o.SalesPersonId == salesPersonId,
+                    includeProperties: "AssignedWarehouse,Items.Product"
+                );
+
+            var result = orders
+                .Select(o => new
+                {
+                    o.OrderId,
+                    o.OrderNumber,
+                    o.CustomerName,
+                    Warehouse = o.AssignedWarehouse.WarehouseName,
+                    o.Status,
+                    o.CreatedAt,
+                    o.Notes,
+                    Items = o.Items.Select(i => new
+                    {
+                        i.ProductId,
+                        ProductName = i.Product.ProductName,
+                        i.QuantityRequested
+                    })
+                })
+                .OrderByDescending(o => o.CreatedAt)
+                .ToList();
+
+            return Ok(result);
+        }
+
     }
 }

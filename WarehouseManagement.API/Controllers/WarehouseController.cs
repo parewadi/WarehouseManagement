@@ -66,5 +66,15 @@ namespace WarehouseManagement.API.Controllers
             var result = await _warehouseService.TransferStockAsync(dto);
             return Ok(result);
         }
-    }
+
+        [HttpGet("warehouse/{warehouseId}")]
+        public async Task<ActionResult<IEnumerable<InventoryDto>>> GetInventoryByWarehouseId(int warehouseId)
+        {
+            var result = await _warehouseService.GetInventoryByWarehouse(warehouseId);
+            if(result == null)
+                return NotFound();
+
+            return Ok(result);
+        }
+        }
 }

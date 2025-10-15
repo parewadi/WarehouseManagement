@@ -8,5 +8,7 @@ namespace WarehouseManagement.API.Services
         Task<bool> DeductStockAsync(int warehouseId, int productId, int qty);
         Task<bool> AddStockAsync(int warehouseId, int productId, int qty);
         Task<string> TransferStockAsync(TransferDto transferDto);
+
+        Task<IEnumerable<InventoryDto>>? GetInventoryByWarehouse(int warehouseId);
     }
 }

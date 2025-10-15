@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using WarehouseManagement.API.Data;
 using WarehouseManagement.API.Models.Domain;
 using WarehouseManagement.API.Models.RequestDto;
@@ -107,6 +109,26 @@ namespace WarehouseManagement.API.Services
 
             await _unitOfWork.SaveAsync();
             return "Transfer completed.";
+        }
+
+        async Task<IEnumerable<InventoryDto>>? IWarehouseService.GetInventoryByWarehouse(int warehouseId)
+        {
+            var warehouseExists = await _context.TblWarehouse.AnyAsync(w => w.WarehouseId == warehouseId);
+            //if (!warehouseExists)
+            //    return null;
+
+            var inventory = await _context.TblInventory
+                .Include(i => i.Product)
+                .Where(i => i.WarehouseId == warehouseId)
+                .Select(i => new InventoryDto
+                {
+                    ProductId = i.ProductId,
+                    ProductName = i.Product.ProductName,
+                    Quantity = i.Quantity
+                })
+                .ToListAsync();
+
+            return inventory;
         }
     }
 

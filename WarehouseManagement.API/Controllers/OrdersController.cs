@@ -11,6 +11,7 @@ namespace WarehouseManagement.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "SalesManager")]
     public class OrdersController : ControllerBase
     {
         private readonly IOrderService _orderService;
@@ -52,8 +53,13 @@ namespace WarehouseManagement.API.Controllers
         => Ok(await _orderService.GetAllOrdersAsync());
 
         [HttpPost]
-        public async Task<ActionResult<OrderDto>> Create(CreateOrderDto dto)
-            => Ok(await _orderService.CreateOrderAsync(dto));
+        public async Task<ActionResult<OrderDto>> Create([FromBody]CreateOrderDto dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+           return  Ok(await _orderService.CreateOrderAsync(dto));
+
+        }
 
         [HttpPost("fulfill")]
         public async Task<IActionResult> Fulfill(FulfillOrderDto dto)
