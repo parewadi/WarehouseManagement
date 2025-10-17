@@ -6,6 +6,8 @@
         public string OrderNumber { get; set; } = null!;
         public string Status { get; set; } = null!;
         public DateTime CreatedAt { get; set; }
+
+        public string? CustomerName { get; set; }
         public int AssignedWarehouseId { get; set; }
 
         public string? Notes { get; set; }
@@ -31,6 +33,7 @@
         public int Quantity { get; set; }
         public int FromWarehouseId { get; set; }
         public int ToWarehouseId { get; set; }
+        public string Comments { get; set; } = string.Empty;
     }
 
     public class UpdateOrderDto

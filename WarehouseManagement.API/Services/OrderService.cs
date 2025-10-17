@@ -168,6 +168,156 @@ namespace WarehouseManagement.API.Services
             );
         }
 
+        public async Task<IEnumerable<WarehouseOrderViewDto>> GetOrdersByWarehouseAsync(int warehouseId)
+        {
+            var orders = await _unitOfWork.Orders.GetAllAsync(
+        filter: o => o.AssignedWarehouseId == warehouseId,
+        includeProperties: "Items.Product,AssignedWarehouse,SalesPerson"
+    );
+
+            var allInventories = await _unitOfWork.Inventories.GetAllAsync(
+                includeProperties: "Warehouse,Product"
+            );
+
+            var result = orders.Select(o => new WarehouseOrderViewDto
+            {
+                OrderId = o.OrderId,
+                OrderNumber = o.OrderNumber,
+                CustomerName = o.CustomerName ?? string.Empty,
+                Status = o.Status,
+                Comments = o.Notes ?? string.Empty,
+                CreatedAt = o.CreatedAt,
+                WarehouseName = o.AssignedWarehouse.WarehouseName,
+                SalesPerson = o.SalesPerson.UserName,
+                Items = o.Items.Select(i => new WarehouseOrderItemViewDto
+                {
+                    ProductId = i.ProductId,
+                    ProductName = i.Product.ProductName,
+                    QuantityRequested = i.QuantityRequested,
+                    WarehousesWithStock = allInventories
+                        .Where(inv => inv.ProductId == i.ProductId && inv.Quantity > 0)
+                        .Select(inv => new WarehouseStockDto
+                        {
+                            WarehouseId = inv.WarehouseId,
+                            WarehouseName = inv.Warehouse.WarehouseName,
+                            AvailableQty = inv.Quantity
+                        })
+                        .ToList()
+                }).ToList()
+            });
+
+
+            return (IEnumerable<WarehouseOrderViewDto>)result;
+        }
+        
+        public async Task<bool> FulfillOrderAsync(int orderId, string comments)
+        {
+            var order = await _unitOfWork.Orders.GetAsync(
+                o => o.OrderId == orderId,
+                includeProperties: "Items,AssignedWarehouse"
+            );
+
+            if (order == null) return false;
+
+            order.Status = "Fulfilled";
+            order.Notes = AppendComment(order.Notes, $"Order fulfilled: {comments}");
+            order.CreatedAt = DateTime.Now;
+
+            await _unitOfWork.SaveAsync();
+            return true;
+        }
+
+        private string AppendComment(string existing, string newComment)
+        {
+            var entry = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} - {newComment}";
+            if (string.IsNullOrWhiteSpace(existing))
+                return entry;
+            return existing + Environment.NewLine + entry;
+        }
+
+        public async Task<bool> CancelOrderAsync(int orderId, string comments)
+        {
+            var order = await _unitOfWork.Orders.GetAsync(
+        o => o.OrderId == orderId,
+        includeProperties: "Transfers"
+    );
+            if (order == null) return false;
+
+            // revert transfers if any
+            foreach (var tr in order.Transfers.Where(t => !t.IsReverted))
+            {
+                var fromInv = await _unitOfWork.Inventories.GetAsync(
+                    i => i.WarehouseId == tr.FromWarehouseId && i.ProductId == tr.ProductId);
+                var toInv = await _unitOfWork.Inventories.GetAsync(
+                    i => i.WarehouseId == tr.ToWarehouseId && i.ProductId == tr.ProductId);
+
+                if (toInv != null && toInv.Quantity >= tr.Quantity)
+                    toInv.Quantity -= tr.Quantity;
+
+                if (fromInv != null)
+                    fromInv.Quantity += tr.Quantity;
+
+                tr.IsReverted = true;
+                tr.Comments += $" | Reverted on {DateTime.Now:yyyy-MM-dd HH:mm:ss}";
+            }
+
+            // mark order canceled
+            order.Status = "Cancelled";
+            order.Notes = AppendComment(order.Notes, $"Order cancelled: {comments}");
+            await _unitOfWork.SaveAsync();
+            return true;
+        }
+
+        public async Task<bool> TransferOrderItemAsync(int orderId, int productId, int fromWarehouseId, int toWarehouseId, int quantity, string notes)
+        {
+            var order = await _unitOfWork.Orders.GetAsync(
+                o => o.OrderId == orderId,
+                includeProperties: "AssignedWarehouse"
+            );
+            if (order == null) return false;
+
+            var fromInv = await _unitOfWork.Inventories.GetAsync(
+                i => i.WarehouseId == fromWarehouseId && i.ProductId == productId);
+            if (fromInv == null || fromInv.Quantity < quantity)
+                throw new InvalidOperationException("Insufficient stock in source warehouse.");
+
+            var toInv = await _unitOfWork.Inventories.GetAsync(
+                i => i.WarehouseId == toWarehouseId && i.ProductId == productId);
+
+            // adjust stock
+            fromInv.Quantity -= quantity;
+            if (toInv != null)
+                toInv.Quantity += quantity;
+            else
+                await _unitOfWork.Inventories.AddAsync(new Inventory
+                {
+                    WarehouseId = toWarehouseId,
+                    ProductId = productId,
+                    Quantity = quantity
+                });
+
+            // log transfer
+            var transfer = new Transfer
+            {
+                OrderId = orderId,
+                ProductId = productId,
+                FromWarehouseId = fromWarehouseId,
+                ToWarehouseId = toWarehouseId,
+                Quantity = quantity,
+                CreatedOn = DateTime.Now,
+                Comments = notes,
+                IsReverted = false
+            };
+            await _unitOfWork.Transfers.AddAsync(transfer);
+
+            //  comment on order
+            order.Notes = AppendComment(order.Notes,
+                $"Transferred {quantity} of ProductId:{productId} from Warehouse {fromWarehouseId} → {toWarehouseId}.");
+
+            await _unitOfWork.SaveAsync();
+            return true;
+        }
+
     }
 
 }

@@ -12,6 +12,8 @@ namespace WarehouseManagement.API.Models.Domain
         [MaxLength(500)]
         public string? Comments { get; set; }
 
+        public bool IsReverted { get; set; } = false;
+
         //Foreign Keys
         public int? ProductId { get; set; }
         public Product? Product { get; set; } = null!;

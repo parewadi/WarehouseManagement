@@ -11,7 +11,7 @@ namespace WarehouseManagement.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "SalesManager")]
+    [Authorize(Roles = "SalesManager,WarehouseManager")]
     public class OrdersController : ControllerBase
     {
         private readonly IOrderService _orderService;
@@ -48,6 +48,7 @@ namespace WarehouseManagement.API.Controllers
             return Ok(result);
         }
 
+
         [HttpGet("Orders")]
         public async Task<ActionResult<IEnumerable<OrderDto>>> GetAll()
         => Ok(await _orderService.GetAllOrdersAsync());
@@ -61,19 +62,7 @@ namespace WarehouseManagement.API.Controllers
 
         }
 
-        [HttpPost("fulfill")]
-        public async Task<IActionResult> Fulfill(FulfillOrderDto dto)
-            => Ok(await _orderService.FulfillOrderAsync(dto));
-
-        [HttpPost("cancel")]
-        public async Task<IActionResult> Cancel(CancelOrderDto dto)
-            => Ok(await _orderService.CancelOrderAsync(dto));
-
-        [HttpPost("transfer")]
-        public async Task<IActionResult> Transfer(TransferRequestDto dto)
-            => Ok(await _orderService.TransferStockAsync(dto));
-
-
+       
         [Authorize(Roles = "SalesManager")]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetOrderById(int id)
@@ -153,6 +142,68 @@ namespace WarehouseManagement.API.Controllers
             await _unitOfWork.SaveAsync();
 
             return Ok(new { message = "Order updated successfully" });
+        }
+
+        [Authorize(Roles = "WarehouseManager")]
+        [HttpGet("warehouse/{warehouseId}")]
+        public async Task<IActionResult> GetOrdersByWarehouse(int warehouseId)
+        {
+            var orders = await _orderService.GetOrdersByWarehouseAsync(warehouseId);
+            return Ok(orders);
+            //var orders = await _orderService.GetOrdersByWarehouseAsync(warehouseId);
+
+            //var result = orders.Select(o => new
+            //{
+            //    o.OrderId,
+            //    o.OrderNumber,
+            //    o.CustomerName,
+            //    o.Status,
+            //    o.CreatedAt,
+            //    o.Notes,
+            //    Warehouse = o.WarehouseName,
+            //    SalesPerson = o.SalesPerson,
+            //    Items = o.Items.Select(i => new
+            //    {
+            //        i.ProductId,
+
+            //        i.QuantityRequested
+            //    })
+            //});
+
+            //return Ok(result);
+        }
+
+        [Authorize(Roles = "WarehouseManager")]
+        [HttpPut("fulfill/{orderId}")]
+        public async Task<IActionResult> FulfillOrder(int orderId, [FromBody] UpdateOrderStatusDto dto)
+        {
+            var success = await _orderService.FulfillOrderAsync(orderId, dto.Comments);
+            if (!success)
+                return BadRequest(new { message = "Unable to fulfill order." });
+            return Ok(new { message = "Order fulfilled successfully." });
+        }
+
+        [Authorize(Roles = "WarehouseManager")]
+        [HttpPut("cancel/{orderId}")]
+        public async Task<IActionResult> CancelOrder(int orderId, [FromBody] UpdateOrderStatusDto dto)
+        {
+            var success = await _orderService.CancelOrderAsync(orderId, dto.Comments);
+            if (!success)
+                return BadRequest(new { message = "Unable to cancel order." });
+
+            return Ok(new { message = "Order cancelled successfully." });
+
+        }
+
+        [Authorize(Roles = "WarehouseManager")]
+        [HttpPost("transfer")]
+        public async Task<IActionResult> TransferOrderItem([FromBody] TransferRequestDto dto)
+        {
+            var success = await _orderService.TransferOrderItemAsync(
+                dto.OrderId, dto.ProductId, dto.FromWarehouseId, dto.ToWarehouseId, dto.Quantity, dto.Comments
+            );
+            if (!success) return NotFound("Order or product not found");
+            return Ok(new { message = "Transfer completed successfully." });
         }
 
     }
