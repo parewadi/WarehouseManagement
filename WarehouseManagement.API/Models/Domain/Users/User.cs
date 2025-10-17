@@ -18,8 +18,11 @@ namespace WarehouseManagement.API.Models.Domain.Users
         [MaxLength(100)]
         [EmailAddress]
         public string EmailId { get; set; }
+        public int? WarehouseId { get; set; }
+        
         public bool IsActive     { get; set; }
 
+        public Warehouse? Warehouse { get; set; }
         public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
         public ICollection<Order> Orders { get; set; } = new List<Order>();
     }

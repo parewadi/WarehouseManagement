@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
 using WarehouseManagement.API.Data;
 using WarehouseManagement.API.Models.Domain;
 using WarehouseManagement.API.Models.Domain.Users;
@@ -84,6 +85,15 @@ namespace WarehouseManagement.API.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
+            var role = await _unitOfWork.Roles.GetAsync(r => r.RoleId == dto. RoleId);
+            if (role == null)
+                return BadRequest(new { message = "Invalid role." });
+
+            // Warehouse check only if role is Warehouse Manager
+            if (role.RoleName == "WarehouseManager" && dto.WarehouseId == null)
+                return BadRequest(new { message = "WarehouseId is required for Warehouse Managers." });
+
+
             // Check duplicate username or email
             var existingUser = (await _unitOfWork.Users
                 .FindAsync(u => u.UserName == dto.UserName || u.EmailId == dto.EmailId))
@@ -102,30 +112,38 @@ namespace WarehouseManagement.API.Controllers
                     EmailId = dto.EmailId,
                     Password = dto.Password,
                     IsActive = dto.IsActive,
+                    WarehouseId = role.RoleName == "WarehouseManager" ? dto.WarehouseId : null
                 };
 
                 await _unitOfWork.Users.AddAsync(user);
                 await _unitOfWork.SaveAsync();
 
-                // For each role name, find RoleId
-                foreach (var roleName in dto.Roles)
+
+                var userRole = new UserRole
                 {
-                    var role = (await _unitOfWork.Roles.FindAsync(r => r.RoleName == roleName)).FirstOrDefault();
+                    UserId = user.UserId,
+                    RoleId = dto.RoleId
+                };
+                await _unitOfWork.UserRoles.AddAsync(userRole);
 
-                    if (role == null)
-                    {
-                        await transaction.RollbackAsync();
-                        return BadRequest($"Role '{roleName}' not found.");
-                    }
+                // For each role name, find RoleId
+                //foreach (var roleName in dto.Roles)
+                //{
 
-                    var userRole = new UserRole
-                    {
-                        UserId = user.UserId,
-                        RoleId = role.RoleId
-                    };
+                //    if ((await _unitOfWork.Roles.FindAsync(r => r.RoleName == roleName)).FirstOrDefault() == null)
+                //    {
+                //        await transaction.RollbackAsync();
+                //        return BadRequest($"Role '{roleName}' not found.");
+                //    }
 
-                    await _unitOfWork.UserRoles.AddAsync(userRole);
-                }
+                //    var userRole = new UserRole
+                //    {
+                //        UserId = user.UserId,
+                //        RoleId = (await _unitOfWork.Roles.FindAsync(r => r.RoleName == roleName)).FirstOrDefault().RoleId
+                //    };
+
+                //    await _unitOfWork.UserRoles.AddAsync(userRole);
+                //}
 
                 await _unitOfWork.SaveAsync();
                 await transaction.CommitAsync();

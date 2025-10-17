@@ -50,6 +50,11 @@ namespace WarehouseManagement.API.Services
             new Claim("UserId", user.UserId.ToString()),
             new Claim(ClaimTypes.Name, user.UserName)
         };
+            if (user.WarehouseId.HasValue)
+            {
+                claims.Add(new Claim("warehouse_id", user.WarehouseId.Value.ToString()));
+            }
+
 
             foreach (var role in roles)
             {
