@@ -180,7 +180,7 @@ namespace WarehouseManagement.API.Controllers
         public async Task<IActionResult> TransferOrderItem([FromBody] TransferRequestDto dto)
         {
             var success = await _orderService.TransferOrderItemAsync(
-                dto.OrderId, dto.ProductId, dto.FromWarehouseId, dto.ToWarehouseId, dto.Quantity, dto.Comments
+                dto.OrderId, dto.ProductId, dto.FromWarehouseId, dto.ToWarehouseId, dto.Quantity, dto.Notes
             );
             if (!success) return NotFound("Order or product not found");
             return Ok(new { message = "Transfer completed successfully." });

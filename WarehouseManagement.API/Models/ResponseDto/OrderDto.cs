@@ -33,7 +33,7 @@
         public int Quantity { get; set; }
         public int FromWarehouseId { get; set; }
         public int ToWarehouseId { get; set; }
-        public string Comments { get; set; } = string.Empty;
+        public string Notes { get; set; } = string.Empty;
     }
 
     public class UpdateOrderDto
