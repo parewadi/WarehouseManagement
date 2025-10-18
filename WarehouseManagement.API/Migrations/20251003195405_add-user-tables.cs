@@ -81,8 +81,8 @@ namespace WarehouseManagement.API.Migrations
                 values: new object[,]
                 {
                     { 1001, "Parveen.Rewadia@gmail.com", true, "Admin" },
-                    { 1002, "Praveen.Rewadia@gmail.com", true, "SalesTeam" },
-                    { 1003, "Parveen.Rewadia@gmail.com", true, "WarehouseTeam" }
+                    { 1002, "ST_SouthDelhi@Gmail.com", true, "ST_SouthDelhi" },
+                    { 1003, "WT_SouthDelhi@Gmail.com", true, "WT_SouthDelhi" }
                 });
 
             migrationBuilder.InsertData(

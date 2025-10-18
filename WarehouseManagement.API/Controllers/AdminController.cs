@@ -125,26 +125,6 @@ namespace WarehouseManagement.API.Controllers
                     RoleId = dto.RoleId
                 };
                 await _unitOfWork.UserRoles.AddAsync(userRole);
-
-                // For each role name, find RoleId
-                //foreach (var roleName in dto.Roles)
-                //{
-
-                //    if ((await _unitOfWork.Roles.FindAsync(r => r.RoleName == roleName)).FirstOrDefault() == null)
-                //    {
-                //        await transaction.RollbackAsync();
-                //        return BadRequest($"Role '{roleName}' not found.");
-                //    }
-
-                //    var userRole = new UserRole
-                //    {
-                //        UserId = user.UserId,
-                //        RoleId = (await _unitOfWork.Roles.FindAsync(r => r.RoleName == roleName)).FirstOrDefault().RoleId
-                //    };
-
-                //    await _unitOfWork.UserRoles.AddAsync(userRole);
-                //}
-
                 await _unitOfWork.SaveAsync();
                 await transaction.CommitAsync();
 

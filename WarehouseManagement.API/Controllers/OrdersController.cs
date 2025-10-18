@@ -150,27 +150,7 @@ namespace WarehouseManagement.API.Controllers
         {
             var orders = await _orderService.GetOrdersByWarehouseAsync(warehouseId);
             return Ok(orders);
-            //var orders = await _orderService.GetOrdersByWarehouseAsync(warehouseId);
-
-            //var result = orders.Select(o => new
-            //{
-            //    o.OrderId,
-            //    o.OrderNumber,
-            //    o.CustomerName,
-            //    o.Status,
-            //    o.CreatedAt,
-            //    o.Notes,
-            //    Warehouse = o.WarehouseName,
-            //    SalesPerson = o.SalesPerson,
-            //    Items = o.Items.Select(i => new
-            //    {
-            //        i.ProductId,
-
-            //        i.QuantityRequested
-            //    })
-            //});
-
-            //return Ok(result);
+            
         }
 
         [Authorize(Roles = "WarehouseManager")]
