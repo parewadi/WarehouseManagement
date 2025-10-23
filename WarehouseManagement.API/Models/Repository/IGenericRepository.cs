@@ -19,5 +19,7 @@ namespace WarehouseManagement.API.Models.Repository
            Expression<Func<T, bool>> filter,
            string? includeProperties = null
        );
+
+        Task<IEnumerable<T>> GetWithIncludesAsync( Expression<Func<T, bool>>? filter = null, string includeProperties = "");
     }
 }

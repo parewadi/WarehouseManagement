@@ -36,7 +36,6 @@ namespace WarehouseManagement.API.Models.Repository
         {
             return _context.Set<T>();
         }
-
         public async Task<IEnumerable<T>> GetAllAsync(string? includeProperties = null)
         {
             IQueryable<T> query = _dbSet;
@@ -82,6 +81,21 @@ namespace WarehouseManagement.API.Models.Repository
             }
 
             return await query.FirstOrDefaultAsync();
+        }
+
+        public async Task<IEnumerable<T>> GetWithIncludesAsync(
+                                        Expression<Func<T, bool>>? filter = null,
+                                        string includeProperties = "")
+        {
+            IQueryable<T> query = _dbSet;
+
+            if (filter != null)
+                query = query.Where(filter);
+
+            foreach (var includeProp in includeProperties.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+                query = query.Include(includeProp);
+
+            return await query.ToListAsync();
         }
     }
 }
