@@ -219,6 +219,23 @@ namespace WarehouseManagement.API.Services
 
             if (order == null) return false;
 
+            foreach (var item in order.Items)
+            {
+                var inventory = (await _unitOfWork.Inventories
+                    .FindAsync(i => i.ProductId == item.ProductId && i.WarehouseId == order.AssignedWarehouseId))
+                    .FirstOrDefault();
+
+                if (inventory == null || inventory.Quantity < item.QuantityRequested)
+                {
+                    // insufficient stock — rollback gracefully
+                    throw new InvalidOperationException($"Insufficient inventory for product {item.ProductId}");
+                }
+
+                inventory.Quantity -= item.QuantityRequested;
+                _unitOfWork.Inventories.Update(inventory);
+            }
+
+
             order.Status = "Fulfilled";
             order.Notes = AppendComment(order.Notes, $"Order fulfilled: {comments}");
             order.CreatedAt = DateTime.Now;
