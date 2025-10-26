@@ -182,7 +182,7 @@ namespace WarehouseManagement.API.Controllers
             var success = await _orderService.TransferOrderItemAsync(
                 dto.OrderId, dto.ProductId, dto.FromWarehouseId, dto.ToWarehouseId, dto.Quantity, dto.Notes
             );
-            if (!success) return NotFound("Order or product not found");
+            if (!success) return NotFound("Order or Product Not found or Insufficient stock in source warehouse.");
             return Ok(new { message = "Transfer completed successfully." });
         }
 

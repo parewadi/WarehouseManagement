@@ -296,7 +296,8 @@ namespace WarehouseManagement.API.Services
             var fromInv = await _unitOfWork.Inventories.GetAsync(
                 i => i.WarehouseId == fromWarehouseId && i.ProductId == productId);
             if (fromInv == null || fromInv.Quantity < quantity)
-                throw new InvalidOperationException("Insufficient stock in source warehouse.");
+                return false;
+               // throw new InvalidOperationException("Insufficient stock in source warehouse.");
 
             var toInv = await _unitOfWork.Inventories.GetAsync(
                 i => i.WarehouseId == toWarehouseId && i.ProductId == productId);
@@ -327,9 +328,14 @@ namespace WarehouseManagement.API.Services
             };
             await _unitOfWork.Transfers.AddAsync(transfer);
 
+            var product = _unitOfWork.Products.GetAsync(i => i.ProductId == transfer.ProductId);
+            var FromWarehouse = _unitOfWork.Warehouses.GetAsync(o => o.WarehouseId == transfer.FromWarehouseId);
+            var ToWarehouse = _unitOfWork.Warehouses.GetAsync(o => o.WarehouseId == transfer.ToWarehouseId);
+
+
             //  comment on order
             order.Notes = AppendComment(order.Notes,
-                $"Transferred {quantity} of ProductId:{productId} from Warehouse {fromWarehouseId} → {toWarehouseId}.");
+                $"Transferred {quantity} of Product:{product.Result.ProductName} from Warehouse : {FromWarehouse.Result.WarehouseName} → {ToWarehouse.Result.WarehouseName}.");
 
             await _unitOfWork.SaveAsync();
             return true;
